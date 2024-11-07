@@ -1,0 +1,33 @@
+[ru]
+CC__PICKUP_MSG = ^4* ^1Вы получили вознаграждение [^4[money_val] [money_string]^1] [^4[bonus_val] [bonus_string]^1] [^4[exp_val] [exp_string]^1]
+CC__HUD_TIL_REWARD = Монет до вознаграждения: %i/%i
+CC__PICKUP_HUD = +%i %l
+CC__COIN_1 = монет
+CC__COIN_2 = монета
+CC__COIN_3 = монеты
+CC__EXP_1 = ед. опыта
+CC__EXP_2 = ед. опыта
+CC__EXP_3 = ед. опыта
+CC__BONUS_1 = бонусов
+CC__BONUS_2 = бонус
+CC__BONUS_3 = бонуса
+CC__MONEY_1 = $
+CC__MONEY_2 = $
+CC__MONEY_3 = $
+
+[en]
+CC__PICKUP_MSG = ^4* ^1You have received a reward [^4[money_val] [money_string]^1] [^4[bonus_val] [bonus_string]^1] [^4[exp_val] [exp_string]^1]
+CC__HUD_TIL_REWARD = Coins to reward: %i/%i
+CC__PICKUP_HUD = +%i %l
+CC__COIN_1 = coins
+CC__COIN_2 = coin
+CC__COIN_3 = coins
+CC__EXP_1 = exp points
+CC__EXP_2 = exp point(s)
+CC__EXP_3 = exp points
+CC__BONUS_1 = бонусов
+CC__BONUS_2 = бонус
+CC__BONUS_3 = бонуса
+CC__MONEY_1 = $
+CC__MONEY_2 = $
+CC__MONEY_3 = $
