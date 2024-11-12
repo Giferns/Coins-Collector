@@ -10,6 +10,9 @@
 		* Добавлен словарь "data/coins_collector.txt"
 		* Заложено API "scripting/include/coins_collector.inc"
 		* Упразднён вариант работы через nVault
+	1.0.1f (12.11.2024 by mx?!):
+		* Добавлен квар "cc_coin_killer_mode", позволяющий скрыть чужие монеты (убийца видит и поднимает только монеты из собственных жертв)
+		* Исправлен баг с отсутствием выпадения монет после первого выпадения монеты
 */
 
 #include <amxmodx>
@@ -20,7 +23,7 @@
 
 // Плагин основан на плагине "Raise_the_coin 1.0.4" автора "Baton4ik48" https://dev-cs.ru/resources/991/
 new PLUGIN_NAME[] = "Coins Collector";
-new PLUGIN_VERSION[] = "1.0.0f";
+new PLUGIN_VERSION[] = "1.0.1f";
 new PLUGIN_AUTHOR[] = "Baton4ik48 + mx?!";
 
 // НАСТРОЙКИ НАЧАЛО ---------------->
@@ -126,7 +129,8 @@ enum _:CVAR_ENUM {
 	CVAR__COUNT_BOTS,
 	CVAR__COIN_VALUE,
 	Float:CVAR_F__COOLDOWN_GLOBAL,
-	Float:CVAR_F__COOLDOWN_PERSONAL
+	Float:CVAR_F__COOLDOWN_PERSONAL,
+	CVAR__COIN_KILLER_MODE
 };
 
 new g_pCvar[PCVAR_ENUM];
@@ -225,6 +229,8 @@ RegCvars() {
 	bind_pcvar_num(create_cvar("cc_coin_value", "1"), g_eCvar[CVAR__COIN_VALUE]);
 	bind_pcvar_float(create_cvar("cc_coin_cooldown_global", "0"), g_eCvar[CVAR_F__COOLDOWN_GLOBAL]);
 	bind_pcvar_float(create_cvar("cc_coin_cooldown_personal", "15"), g_eCvar[CVAR_F__COOLDOWN_PERSONAL]);
+	
+	bind_pcvar_num(create_cvar("cc_coin_killer_mode", "0"), g_eCvar[CVAR__COIN_KILLER_MODE]);
 }
 
 public hook_CvarChange(pCvar, const szOldVal[], const szNewVal[]) {
@@ -309,10 +315,14 @@ SetHudInformerTask() {
 }
 
 bool:CheckCoinSpawnCooldown(pPlayer, Float:fGameTime) {
-	return (!g_fLastSpawnCoinTime[pPlayer] || fGameTime - g_fLastSpawnCoinTime[pPlayer] >= g_eCvar[ pPlayer ? CVAR_F__COOLDOWN_PERSONAL : CVAR_F__COOLDOWN_GLOBAL ]);
+	return (!g_fLastSpawnCoinTime[pPlayer] || fGameTime - g_fLastSpawnCoinTime[pPlayer] >= Float:g_eCvar[ pPlayer ? CVAR_F__COOLDOWN_PERSONAL : CVAR_F__COOLDOWN_GLOBAL ]);
 }
 
 public CSGameRules_PlayerKilled_Pre(pVictim, pKiller, pInflictor) {
+	if(g_eCvar[CVAR__COIN_KILLER_MODE] && pVictim == pKiller) {
+		return;
+	}
+	
 	if(!CheckMinPlayers()) {
 		return;
 	}
@@ -323,7 +333,7 @@ public CSGameRules_PlayerKilled_Pre(pVictim, pKiller, pInflictor) {
 		return;
 	}
 
-	if(CreateCoinEntity(pVictim)) {
+	if(CreateCoinEntity(pVictim, pKiller)) {
 		g_fLastSpawnCoinTime[0] = fGameTime;
 		g_fLastSpawnCoinTime[pVictim] = fGameTime;
 		DeathPenaltyExp(pVictim);
@@ -365,7 +375,7 @@ DeathPenaltyExp(pPlayer) {
 	}
 }
 
-bool:CreateCoinEntity(pVictim) {
+bool:CreateCoinEntity(pVictim, pKiller) {
 	new iRet;
 	ExecuteForward(g_fwdSpawnCoinPre, iRet, pVictim);
 
@@ -401,7 +411,12 @@ bool:CreateCoinEntity(pVictim) {
 	set_entvar(pEntity, var_framerate, g_eCvar[CVAR_F__ENT_FRAMERATE]);
 	set_entvar(pEntity, var_sequence, g_eCvar[CVAR__ENT_SEQUENCE]);
 
-	set_entvar(pEntity, var_owner, pVictim);
+	set_entvar(pEntity, cc_var_killer, pKiller);
+	set_entvar(pEntity, cc_var_owner, pVictim);
+	
+	if(g_eCvar[CVAR__COIN_KILLER_MODE]) {
+		set_entvar(pEntity, var_effects, EF_OWNER_VISIBILITY);
+	}
 
 	set_entvar(pEntity, var_classname, ENT_CLASSNAME);
 	set_entvar(pEntity, var_movetype, MOVETYPE_TOSS);
@@ -462,10 +477,14 @@ public OnTouchPre(pTouched, pToucher) {
 	}
 
 #if !defined DEBUG
-	if(get_entvar(pTouched, var_owner) == pToucher) {
+	if(get_entvar(pTouched, cc_var_owner) == pToucher) {
 		return;
 	}
 #endif
+
+	if(g_eCvar[CVAR__COIN_KILLER_MODE] && get_entvar(pTouched, cc_var_killer) != pToucher) {
+		return;
+	}
 
 	g_iCoins[pToucher] = min(g_eCvar[CVAR__COINS_TO_REWARD], g_iCoins[pToucher] + g_eCvar[CVAR__COIN_VALUE]);
 	set_hudmessage(g_eCvar[CVAR__P_HUD_R], g_eCvar[CVAR__P_HUD_G], g_eCvar[CVAR__P_HUD_B], g_eCvar[CVAR_F__P_HUD_X], g_eCvar[CVAR_F__P_HUD_Y], 0, 0.0, g_eCvar[CVAR_F__P_HUD_DURATION], 0.1, 0.1, g_eCvar[CVAR__P_CHANNEL]);
