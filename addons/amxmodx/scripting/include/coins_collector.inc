@@ -4,6 +4,8 @@
 #define _coins_collector_included
 
 #define cc_var_dying_state var_iuser2
+#define cc_var_owner var_iuser3
+#define cc_var_killer var_owner // do not change, var_owner required at least for EF_OWNER_VISIBILITY logic
 
 /**
  * Called before a coin is spawned.
