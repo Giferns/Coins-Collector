@@ -13,6 +13,8 @@
 	1.0.1f (12.11.2024 by mx?!):
 		* Добавлен квар "cc_coin_killer_mode", позволяющий скрыть чужие монеты (убийца видит и поднимает только монеты из собственных жертв)
 		* Исправлен баг с отсутствием выпадения монет после первого выпадения монеты
+	1.0.2f (26.01.2025 by mx?!):
+		* Квару "cc_rank_system_type" добавлен режим "4" (опыт из Army Ranks Ultimate, очки anew из BonusMenu RBS)
 */
 
 #include <amxmodx>
@@ -23,7 +25,7 @@
 
 // Плагин основан на плагине "Raise_the_coin 1.0.4" автора "Baton4ik48" https://dev-cs.ru/resources/991/
 new PLUGIN_NAME[] = "Coins Collector";
-new PLUGIN_VERSION[] = "1.0.1f";
+new PLUGIN_VERSION[] = "1.0.2f";
 new PLUGIN_AUTHOR[] = "Baton4ik48 + mx?!";
 
 // НАСТРОЙКИ НАЧАЛО ---------------->
@@ -65,6 +67,9 @@ native ar_add_user_anew(admin, player, anew);
 // [3] CMSStats Ranks 2.1.4: https://cs-games.club/index.php?resources/cmsstats-ranks.14/
 native cmsranks_set_user_addxp(id, value);
 native cmsranks_add_user_anew(id, value);
+
+// [4] BonusMenu RBS 20.06.06 https://fungun.net/shop/?p=show&id=106
+native bonusmenu_add_user_points(id, points);
 
 const TASKID__HUD_INFORMER = 1337;
 
@@ -370,7 +375,7 @@ DeathPenaltyExp(pPlayer) {
 
 	switch(g_eCvar[CVAR__RANK_SYSTEM_TYPE]) {
 		case 1: aes_set_player_exp(pPlayer, aes_get_player_exp(pPlayer) + float( -g_eCvar[CVAR__DEATH_PENALTY_EXP] ));
-		case 2: ar_set_user_addxp(pPlayer, -g_eCvar[CVAR__DEATH_PENALTY_EXP]);
+		case 2, 4: ar_set_user_addxp(pPlayer, -g_eCvar[CVAR__DEATH_PENALTY_EXP]);
 		case 3: cmsranks_set_user_addxp(pPlayer, -g_eCvar[CVAR__DEATH_PENALTY_EXP]);
 	}
 }
@@ -531,7 +536,7 @@ TryAddReward(pPlayer) {
 	if(g_eCvar[CVAR__REWARD_EXP_AMT] > 0) {
 		switch(g_eCvar[CVAR__RANK_SYSTEM_TYPE]) {
 			case 1: aes_set_player_exp(pPlayer, aes_get_player_exp(pPlayer) + float( g_eCvar[CVAR__REWARD_EXP_AMT] ));
-			case 2: ar_set_user_addxp(pPlayer, g_eCvar[CVAR__REWARD_EXP_AMT]);
+			case 2, 4: ar_set_user_addxp(pPlayer, g_eCvar[CVAR__REWARD_EXP_AMT]);
 			case 3: cmsranks_set_user_addxp(pPlayer, g_eCvar[CVAR__REWARD_EXP_AMT]);
 		}
 	}
@@ -541,6 +546,7 @@ TryAddReward(pPlayer) {
 			case 1: aes_set_player_bonus(pPlayer, aes_get_player_bonus(pPlayer) + g_eCvar[CVAR__REWARD_BONUS_AMT]);
 			case 2: ar_add_user_anew(-1, pPlayer, g_eCvar[CVAR__REWARD_BONUS_AMT]);
 			case 3: cmsranks_add_user_anew(pPlayer, g_eCvar[CVAR__REWARD_BONUS_AMT]);
+			case 4: bonusmenu_add_user_points(pPlayer, g_eCvar[CVAR__REWARD_BONUS_AMT]);
 		}
 	}
 }
